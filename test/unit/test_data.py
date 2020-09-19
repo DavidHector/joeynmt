@@ -25,7 +25,7 @@ class TestData(unittest.TestCase):
         current_cfg = self.data_cfg.copy()
 
         # load toy data
-        train_data, dev_data, test_data, src_vocab, trg_vocab = \
+        train_data, dev_data, test_data, trg_vocab = \
             load_data(current_cfg)
 
         # make batches by number of sentences
@@ -59,7 +59,7 @@ class TestData(unittest.TestCase):
                         current_cfg["test"] = test_path
 
                     # load the data
-                    train_data, dev_data, test_data, src_vocab, trg_vocab = \
+                    train_data, dev_data, test_data, trg_vocab = \
                         load_data(current_cfg)
 
                     self.assertIs(type(train_data), TranslationDataset)
@@ -148,11 +148,11 @@ class TestData(unittest.TestCase):
         current_cfg["random_train_subset"] = -1
 
         # load the data
-        train_data, dev_data, test_data, src_vocab, trg_vocab = \
+        train_data, dev_data, test_data, trg_vocab = \
             load_data(current_cfg)
         assert len(train_data) == 382
 
         current_cfg["random_train_subset"] = 10
-        train_data, dev_data, test_data, src_vocab, trg_vocab = \
+        train_data, dev_data, test_data, trg_vocab = \
             load_data(current_cfg)
         assert len(train_data) == 10

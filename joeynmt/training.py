@@ -275,10 +275,10 @@ class TrainManager:
         :param train_data: training data
         :param valid_data: validation data
         """
-        train_iter = make_data_iter(train_data,
-                                    batch_size=self.batch_size,
-                                    batch_type=self.batch_type,
-                                    train=True, shuffle=self.shuffle)
+        train_iter = train_data #make_data_iter(train_data,
+                                 #   batch_size=self.batch_size,
+                                  #  batch_type=self.batch_type,
+                                   # train=True, shuffle=self.shuffle)
 
         # For last batch in epoch batch_multiplier needs to be adjusted
         # to fit the number of leftover training examples
@@ -304,6 +304,10 @@ class TrainManager:
 
             for i, batch in enumerate(iter(train_iter)):
                 # reactivate training
+                # Todo: batch muss Attribut src und trg kriegen
+                # Todo: Eigene Batch-Klasse schreiben mit src und trg so wie Batch() das möchte
+                # Todo: Vlt das eigene Dataset mit fields erweitern
+                # batch = ownbatch(batch)
                 self.model.train()
                 # create a Batch object from torchtext batch
 
@@ -630,7 +634,7 @@ def train(cfg_file: str) -> None:
 
 
     # build an encoder-decoder model
-    model = build_model(cfg["model"], src_vocab=src_vocab, trg_vocab=trg_vocab)
+    model = build_model(cfg["model"], src_vocab=None, trg_vocab=trg_vocab)
 
     # for training management, e.g. early stopping and model selection
     trainer = TrainManager(model=model, config=cfg)
@@ -642,14 +646,14 @@ def train(cfg_file: str) -> None:
     log_cfg(cfg, trainer.logger)
 
     log_data_info(train_data=train_data, valid_data=dev_data,
-                  test_data=test_data, src_vocab=src_vocab, trg_vocab=trg_vocab,
+                  test_data=test_data, src_vocab=None, trg_vocab=trg_vocab,
                   logging_function=trainer.logger.info)
 
     trainer.logger.info(str(model))
 
     # store the vocabs
-    src_vocab_file = "{}/src_vocab.txt".format(cfg["training"]["model_dir"])
-    src_vocab.to_file(src_vocab_file)
+    #src_vocab_file = "{}/src_vocab.txt".format(cfg["training"]["model_dir"])
+    #src_vocab.to_file(src_vocab_file)
     trg_vocab_file = "{}/trg_vocab.txt".format(cfg["training"]["model_dir"])
     trg_vocab.to_file(trg_vocab_file)
 

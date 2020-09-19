@@ -6,7 +6,7 @@ Vocabulary module
 from collections import defaultdict, Counter
 from typing import List
 import numpy as np
-
+from torchtext.data import get_tokenizer
 from torchtext.data import Dataset
 
 from joeynmt.constants import UNK_TOKEN, DEFAULT_UNK_ID, \
@@ -141,7 +141,7 @@ class Vocabulary:
         return sentences
 
 
-def build_vocab(field: str, max_size: int, min_freq: int, dataset: Dataset,
+def build_vocab(max_size: int, min_freq: int, dataset,
                 vocab_file: str = None) -> Vocabulary:
     """
     Builds vocabulary for a torchtext `field` from given`dataset` or
@@ -178,11 +178,11 @@ def build_vocab(field: str, max_size: int, min_freq: int, dataset: Dataset,
             return vocab_tokens
 
         tokens = []
-        for i in dataset.examples:
-            if field == "src":
-                tokens.extend(i.src)
-            elif field == "trg":
-                tokens.extend(i.trg)
+        tokenizer = get_tokenizer("basic_english")
+        for i in dataset:
+            input_audio, input_samplerate, input_dict = i[0], i[1], i[2]
+            sentence = input_dict['sentence']
+            tokens.extend(tokenizer(sentence))
 
         counter = Counter(tokens)
         if min_freq > -1:

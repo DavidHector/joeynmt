@@ -10,7 +10,7 @@ from torch import Tensor
 import torch.nn.functional as F
 
 from joeynmt.initialization import initialize_model
-from joeynmt.embeddings import Embeddings
+from joeynmt.embeddings import Embeddings, Embeddings_Audio
 from joeynmt.encoders import Encoder, RecurrentEncoder, TransformerEncoder
 from joeynmt.decoders import Decoder, RecurrentDecoder, TransformerDecoder
 from joeynmt.constants import PAD_TOKEN, EOS_TOKEN, BOS_TOKEN
@@ -208,11 +208,11 @@ def build_model(cfg: dict = None,
     :param trg_vocab: target vocabulary
     :return: built and initialized model
     """
-    src_padding_idx = src_vocab.stoi[PAD_TOKEN]
+    src_padding_idx = 1 # src_vocab.stoi[PAD_TOKEN]
     trg_padding_idx = trg_vocab.stoi[PAD_TOKEN]
 
-    src_embed = Embeddings(
-        **cfg["encoder"]["embeddings"], vocab_size=len(src_vocab),
+    src_embed = Embeddings_Audio(
+        **cfg["encoder"]["embeddings"], vocab_size=0,
         padding_idx=src_padding_idx)
     print("type(src_embed): {}".format(type(src_embed)))
 

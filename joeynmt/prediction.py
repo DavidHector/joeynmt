@@ -213,7 +213,7 @@ def test(cfg_file,
     max_output_length = cfg["training"].get("max_output_length", None)
 
     # load the data
-    _, dev_data, test_data, src_vocab, trg_vocab = load_data(
+    _, dev_data, test_data, trg_vocab = load_data(
         data_cfg=cfg["data"])
 
     data_to_predict = {"dev": dev_data, "test": test_data}
@@ -222,7 +222,7 @@ def test(cfg_file,
     model_checkpoint = load_checkpoint(ckpt, use_cuda=use_cuda)
 
     # build model and load parameters into it
-    model = build_model(cfg["model"], src_vocab=src_vocab, trg_vocab=trg_vocab)
+    model = build_model(cfg["model"], src_vocab=None, trg_vocab=trg_vocab)
     model.load_state_dict(model_checkpoint["model_state"])
 
     if use_cuda:

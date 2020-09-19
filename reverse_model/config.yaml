@@ -4,6 +4,7 @@ data:
     src: "src"
     trg: "trg"
     # generate data with scripts/generate_reverse_task.py
+    language: "esperanto"
     train: "test/data/reverse/train"
     dev: "test/data/reverse/dev"
     test: "test/data/reverse/test"
@@ -56,7 +57,7 @@ model:
     encoder:
         rnn_type: "lstm"
         embeddings:
-            embedding_dim: 16
+            embedding_dim: 201
             scale: False
         hidden_size: 64
         bidirectional: True

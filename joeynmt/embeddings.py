@@ -54,7 +54,7 @@ class Embeddings(nn.Module):
         return "%s(embedding_dim=%d, vocab_size=%d)" % (
             self.__class__.__name__, self.embedding_dim, self.vocab_size)
 
-class Embeddings_audio(nn.Module):
+class Embeddings_Audio(nn.Module):
 
     """
     Simple embeddings class
@@ -78,13 +78,13 @@ class Embeddings_audio(nn.Module):
         :param padding_idx:
         :param freeze: freeze the embeddings during training
         """
-        super(Embeddings_audio, self).__init__()
+        super(Embeddings_Audio, self).__init__()
 
         self.embedding_dim = embedding_dim
         self.scale = scale
         self.vocab_size = vocab_size
-        self.lut = nn.Embedding(vocab_size, self.embedding_dim,
-                                padding_idx=padding_idx)
+        # self.lut = nn.Embedding(vocab_size, self.embedding_dim,
+          #                      padding_idx=padding_idx)
 
         if freeze:
             freeze_params(self)

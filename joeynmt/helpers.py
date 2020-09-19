@@ -141,16 +141,16 @@ def log_data_info(train_data: Dataset, valid_data: Dataset, test_data: Dataset,
             len(train_data), len(valid_data),
             len(test_data) if test_data is not None else 0)
 
-    logging_function("First training example:\n\t[SRC] %s\n\t[TRG] %s",
-        " ".join(vars(train_data[0])['src']),
-        " ".join(vars(train_data[0])['trg']))
+    #logging_function("First training example:\n\t[SRC] %s\n\t[TRG] %s",
+     #   " ".join(vars(train_data[0])),
+      #  " ".join(vars(train_data[0])))
 
-    logging_function("First 10 words (src): %s", " ".join(
-        '(%d) %s' % (i, t) for i, t in enumerate(src_vocab.itos[:10])))
+    #logging_function("First 10 words (src): %s", " ".join(
+    #    '(%d) %s' % (i, t) for i, t in enumerate(src_vocab.itos[:10])))
     logging_function("First 10 words (trg): %s", " ".join(
         '(%d) %s' % (i, t) for i, t in enumerate(trg_vocab.itos[:10])))
 
-    logging_function("Number of Src words (types): %d", len(src_vocab))
+    # logging_function("Number of Src words (types): %d", len(src_vocab))
     logging_function("Number of Trg words (types): %d", len(trg_vocab))
 
 

@@ -4,6 +4,11 @@
 Implementation of a mini-batch.
 """
 
+class BatchBatch:
+    """Object for conforming to Batch requirements (batch.src must be defined an return src and src_lengths,
+    as well as batch.trg)"""
+    def __init__(self, batch):
+        self.src = None
 
 class Batch:
     """Object for holding a batch of data with mask during training.

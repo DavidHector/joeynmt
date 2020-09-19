@@ -25,7 +25,7 @@ class TestData(TensorTestCase):
                          "max_sent_length": self.max_sent_length}
 
         # load the data
-        self.train_data, self.dev_data, self.test_data, src_vocab, trg_vocab = \
+        self.train_data, self.dev_data, self.test_data, trg_vocab = \
             load_data(self.data_cfg)
         self.pad_index = trg_vocab.stoi[PAD_TOKEN]
         # random seeds
