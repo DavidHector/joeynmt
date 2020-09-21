@@ -1,77 +1,77 @@
-2020-09-19 17:04:45,587 Hello! This is Joey-NMT.
-2020-09-19 17:04:47,406 Total params: 202944
-2020-09-19 17:04:47,407 Trainable parameters: ['decoder.att_vector_layer.bias', 'decoder.att_vector_layer.weight', 'decoder.attention.key_layer.weight', 'decoder.output_layer.weight', 'decoder.rnn.bias_hh_l0', 'decoder.rnn.bias_ih_l0', 'decoder.rnn.weight_hh_l0', 'decoder.rnn.weight_ih_l0', 'encoder.rnn.bias_hh_l0', 'encoder.rnn.bias_hh_l0_reverse', 'encoder.rnn.bias_ih_l0', 'encoder.rnn.bias_ih_l0_reverse', 'encoder.rnn.weight_hh_l0', 'encoder.rnn.weight_hh_l0_reverse', 'encoder.rnn.weight_ih_l0', 'encoder.rnn.weight_ih_l0_reverse', 'trg_embed.lut.weight']
-2020-09-19 17:04:47,408 cfg.name                           : reverse_experiment
-2020-09-19 17:04:47,408 cfg.data.src                       : src
-2020-09-19 17:04:47,408 cfg.data.trg                       : trg
-2020-09-19 17:04:47,408 cfg.data.language                  : esperanto
-2020-09-19 17:04:47,408 cfg.data.train                     : test/data/reverse/train
-2020-09-19 17:04:47,408 cfg.data.dev                       : test/data/reverse/dev
-2020-09-19 17:04:47,409 cfg.data.test                      : test/data/reverse/test
-2020-09-19 17:04:47,409 cfg.data.level                     : word
-2020-09-19 17:04:47,409 cfg.data.lowercase                 : False
-2020-09-19 17:04:47,409 cfg.data.max_sent_length           : 25
-2020-09-19 17:04:47,409 cfg.data.src_voc_min_freq          : 0
-2020-09-19 17:04:47,409 cfg.data.src_voc_limit             : 100
-2020-09-19 17:04:47,409 cfg.data.trg_voc_min_freq          : 0
-2020-09-19 17:04:47,409 cfg.data.trg_voc_limit             : 100
-2020-09-19 17:04:47,409 cfg.testing.beam_size              : 1
-2020-09-19 17:04:47,409 cfg.testing.alpha                  : 1.0
-2020-09-19 17:04:47,409 cfg.training.random_seed           : 42
-2020-09-19 17:04:47,410 cfg.training.optimizer             : adam
-2020-09-19 17:04:47,410 cfg.training.learning_rate         : 0.001
-2020-09-19 17:04:47,410 cfg.training.learning_rate_min     : 0.0002
-2020-09-19 17:04:47,410 cfg.training.weight_decay          : 0.0
-2020-09-19 17:04:47,410 cfg.training.clip_grad_norm        : 1.0
-2020-09-19 17:04:47,410 cfg.training.batch_size            : 10
-2020-09-19 17:04:47,410 cfg.training.batch_type            : sentence
-2020-09-19 17:04:47,410 cfg.training.scheduling            : plateau
-2020-09-19 17:04:47,410 cfg.training.patience              : 5
-2020-09-19 17:04:47,410 cfg.training.decrease_factor       : 0.5
-2020-09-19 17:04:47,410 cfg.training.early_stopping_metric : eval_metric
-2020-09-19 17:04:47,410 cfg.training.epochs                : 1
-2020-09-19 17:04:47,410 cfg.training.validation_freq       : 1000
-2020-09-19 17:04:47,411 cfg.training.logging_freq          : 100
-2020-09-19 17:04:47,411 cfg.training.eval_metric           : bleu
-2020-09-19 17:04:47,411 cfg.training.model_dir             : reverse_model
-2020-09-19 17:04:47,411 cfg.training.overwrite             : True
-2020-09-19 17:04:47,411 cfg.training.shuffle               : True
-2020-09-19 17:04:47,411 cfg.training.use_cuda              : False
-2020-09-19 17:04:47,411 cfg.training.max_output_length     : 30
-2020-09-19 17:04:47,411 cfg.training.print_valid_sents     : [0, 3, 6]
-2020-09-19 17:04:47,411 cfg.training.keep_last_ckpts       : 2
-2020-09-19 17:04:47,412 cfg.model.initializer              : xavier
-2020-09-19 17:04:47,412 cfg.model.embed_initializer        : normal
-2020-09-19 17:04:47,412 cfg.model.embed_init_weight        : 0.1
-2020-09-19 17:04:47,412 cfg.model.bias_initializer         : zeros
-2020-09-19 17:04:47,412 cfg.model.init_rnn_orthogonal      : False
-2020-09-19 17:04:47,412 cfg.model.lstm_forget_gate         : 0.0
-2020-09-19 17:04:47,412 cfg.model.encoder.rnn_type         : lstm
-2020-09-19 17:04:47,412 cfg.model.encoder.embeddings.embedding_dim : 201
-2020-09-19 17:04:47,413 cfg.model.encoder.embeddings.scale : False
-2020-09-19 17:04:47,413 cfg.model.encoder.hidden_size      : 64
-2020-09-19 17:04:47,413 cfg.model.encoder.bidirectional    : True
-2020-09-19 17:04:47,413 cfg.model.encoder.dropout          : 0.1
-2020-09-19 17:04:47,413 cfg.model.encoder.num_layers       : 1
-2020-09-19 17:04:47,413 cfg.model.decoder.rnn_type         : lstm
-2020-09-19 17:04:47,413 cfg.model.decoder.embeddings.embedding_dim : 16
-2020-09-19 17:04:47,413 cfg.model.decoder.embeddings.scale : False
-2020-09-19 17:04:47,413 cfg.model.decoder.hidden_size      : 64
-2020-09-19 17:04:47,414 cfg.model.decoder.dropout          : 0.1
-2020-09-19 17:04:47,414 cfg.model.decoder.hidden_dropout   : 0.1
-2020-09-19 17:04:47,414 cfg.model.decoder.num_layers       : 1
-2020-09-19 17:04:47,414 cfg.model.decoder.input_feeding    : True
-2020-09-19 17:04:47,414 cfg.model.decoder.init_hidden      : zero
-2020-09-19 17:04:47,414 cfg.model.decoder.attention        : luong
-2020-09-19 17:04:47,414 Data set sizes: 
-	train 385,
+2020-09-21 19:21:20,961 Hello! This is Joey-NMT.
+2020-09-21 19:21:21,874 Total params: 202944
+2020-09-21 19:21:21,874 Trainable parameters: ['decoder.att_vector_layer.bias', 'decoder.att_vector_layer.weight', 'decoder.attention.key_layer.weight', 'decoder.output_layer.weight', 'decoder.rnn.bias_hh_l0', 'decoder.rnn.bias_ih_l0', 'decoder.rnn.weight_hh_l0', 'decoder.rnn.weight_ih_l0', 'encoder.rnn.bias_hh_l0', 'encoder.rnn.bias_hh_l0_reverse', 'encoder.rnn.bias_ih_l0', 'encoder.rnn.bias_ih_l0_reverse', 'encoder.rnn.weight_hh_l0', 'encoder.rnn.weight_hh_l0_reverse', 'encoder.rnn.weight_ih_l0', 'encoder.rnn.weight_ih_l0_reverse', 'trg_embed.lut.weight']
+2020-09-21 19:21:21,874 cfg.name                           : reverse_experiment
+2020-09-21 19:21:21,874 cfg.data.src                       : src
+2020-09-21 19:21:21,874 cfg.data.trg                       : trg
+2020-09-21 19:21:21,874 cfg.data.language                  : esperanto
+2020-09-21 19:21:21,874 cfg.data.train                     : test/data/reverse/train
+2020-09-21 19:21:21,875 cfg.data.dev                       : test/data/reverse/dev
+2020-09-21 19:21:21,875 cfg.data.test                      : test/data/reverse/test
+2020-09-21 19:21:21,875 cfg.data.level                     : word
+2020-09-21 19:21:21,875 cfg.data.lowercase                 : False
+2020-09-21 19:21:21,875 cfg.data.max_sent_length           : 25
+2020-09-21 19:21:21,875 cfg.data.src_voc_min_freq          : 0
+2020-09-21 19:21:21,875 cfg.data.src_voc_limit             : 100
+2020-09-21 19:21:21,875 cfg.data.trg_voc_min_freq          : 0
+2020-09-21 19:21:21,875 cfg.data.trg_voc_limit             : 100
+2020-09-21 19:21:21,875 cfg.testing.beam_size              : 1
+2020-09-21 19:21:21,875 cfg.testing.alpha                  : 1.0
+2020-09-21 19:21:21,875 cfg.training.random_seed           : 42
+2020-09-21 19:21:21,875 cfg.training.optimizer             : adam
+2020-09-21 19:21:21,875 cfg.training.learning_rate         : 0.001
+2020-09-21 19:21:21,875 cfg.training.learning_rate_min     : 0.0002
+2020-09-21 19:21:21,875 cfg.training.weight_decay          : 0.0
+2020-09-21 19:21:21,875 cfg.training.clip_grad_norm        : 1.0
+2020-09-21 19:21:21,875 cfg.training.batch_size            : 10
+2020-09-21 19:21:21,875 cfg.training.batch_type            : sentence
+2020-09-21 19:21:21,875 cfg.training.scheduling            : plateau
+2020-09-21 19:21:21,875 cfg.training.patience              : 5
+2020-09-21 19:21:21,875 cfg.training.decrease_factor       : 0.5
+2020-09-21 19:21:21,875 cfg.training.early_stopping_metric : eval_metric
+2020-09-21 19:21:21,875 cfg.training.epochs                : 1
+2020-09-21 19:21:21,875 cfg.training.validation_freq       : 1000
+2020-09-21 19:21:21,875 cfg.training.logging_freq          : 100
+2020-09-21 19:21:21,875 cfg.training.eval_metric           : bleu
+2020-09-21 19:21:21,875 cfg.training.model_dir             : reverse_model
+2020-09-21 19:21:21,875 cfg.training.overwrite             : True
+2020-09-21 19:21:21,875 cfg.training.shuffle               : True
+2020-09-21 19:21:21,876 cfg.training.use_cuda              : False
+2020-09-21 19:21:21,876 cfg.training.max_output_length     : 30
+2020-09-21 19:21:21,876 cfg.training.print_valid_sents     : [0, 3, 6]
+2020-09-21 19:21:21,876 cfg.training.keep_last_ckpts       : 2
+2020-09-21 19:21:21,876 cfg.model.initializer              : xavier
+2020-09-21 19:21:21,876 cfg.model.embed_initializer        : normal
+2020-09-21 19:21:21,876 cfg.model.embed_init_weight        : 0.1
+2020-09-21 19:21:21,876 cfg.model.bias_initializer         : zeros
+2020-09-21 19:21:21,876 cfg.model.init_rnn_orthogonal      : False
+2020-09-21 19:21:21,876 cfg.model.lstm_forget_gate         : 0.0
+2020-09-21 19:21:21,876 cfg.model.encoder.rnn_type         : lstm
+2020-09-21 19:21:21,876 cfg.model.encoder.embeddings.embedding_dim : 201
+2020-09-21 19:21:21,876 cfg.model.encoder.embeddings.scale : False
+2020-09-21 19:21:21,876 cfg.model.encoder.hidden_size      : 64
+2020-09-21 19:21:21,876 cfg.model.encoder.bidirectional    : True
+2020-09-21 19:21:21,876 cfg.model.encoder.dropout          : 0.1
+2020-09-21 19:21:21,876 cfg.model.encoder.num_layers       : 1
+2020-09-21 19:21:21,876 cfg.model.decoder.rnn_type         : lstm
+2020-09-21 19:21:21,876 cfg.model.decoder.embeddings.embedding_dim : 16
+2020-09-21 19:21:21,876 cfg.model.decoder.embeddings.scale : False
+2020-09-21 19:21:21,876 cfg.model.decoder.hidden_size      : 64
+2020-09-21 19:21:21,876 cfg.model.decoder.dropout          : 0.1
+2020-09-21 19:21:21,876 cfg.model.decoder.hidden_dropout   : 0.1
+2020-09-21 19:21:21,876 cfg.model.decoder.num_layers       : 1
+2020-09-21 19:21:21,876 cfg.model.decoder.input_feeding    : True
+2020-09-21 19:21:21,876 cfg.model.decoder.init_hidden      : zero
+2020-09-21 19:21:21,876 cfg.model.decoder.attention        : luong
+2020-09-21 19:21:21,876 Data set sizes: 
+	train 1,
 	valid 2965,
 	test 3030
-2020-09-19 17:04:47,414 First 10 words (trg): (0) <unk> (1) <pad> (2) <s> (3) </s> (4) . (5) , (6) la (7) mi (8) ne (9) kaj
-2020-09-19 17:04:47,415 Number of Trg words (types): 104
-2020-09-19 17:04:47,415 Model(
+2020-09-21 19:21:21,876 First 10 words (trg): (0) <unk> (1) <pad> (2) <s> (3) </s> (4) . (5) , (6) la (7) mi (8) ne (9) kaj
+2020-09-21 19:21:21,877 Number of Trg words (types): 104
+2020-09-21 19:21:21,877 Model(
 	encoder=RecurrentEncoder(LSTM(201, 64, batch_first=True, bidirectional=True)),
 	decoder=RecurrentDecoder(rnn=LSTM(80, 64, batch_first=True), attention=LuongAttention),
 	src_embed=Embeddings_Audio(embedding_dim=201, vocab_size=0),
 	trg_embed=Embeddings(embedding_dim=16, vocab_size=104))
-2020-09-19 17:04:52,668 EPOCH 1
+2020-09-21 19:22:13,852 EPOCH 1

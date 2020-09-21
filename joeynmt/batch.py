@@ -1,5 +1,6 @@
 # coding: utf-8
-
+import torch
+import torch.nn as nn
 """
 Implementation of a mini-batch.
 """
@@ -7,8 +8,32 @@ Implementation of a mini-batch.
 class BatchBatch:
     """Object for conforming to Batch requirements (batch.src must be defined an return src and src_lengths,
     as well as batch.trg)"""
-    def __init__(self, batch):
-        self.src = None
+    # TODO: pad src, so that stack has all same dimensions. use mask to restrict training to correct data
+    def __init__(self, batch, pad_index, use_cuda=False):
+        self.src, self.trg = torch.stack([x[0] for x in batch]), [x[1] for x in batch]
+        self.src_mask = (self.src != pad_index).unsqueeze(1)
+        self.nseqs = None  # self.src.size(0)
+        self.trg_input = None
+        self.trg = None
+        self.trg_mask = None
+        self.trg_lengths = None
+        self.ntokens = None
+        self.use_cuda = use_cuda
+
+        if hasattr(batch, "trg"):
+            trg, trg_lengths = batch.trg
+            # trg_input is used for teacher forcing, last one is cut off
+            self.trg_input = trg[:, :-1]
+            self.trg_lengths = trg_lengths
+            # trg is used for loss computation, shifted by one since BOS
+            self.trg = trg[:, 1:]
+            # we exclude the padded areas from the loss computation
+            self.trg_mask = (self.trg_input != pad_index).unsqueeze(1)
+            self.ntokens = (self.trg != pad_index).data.sum().item()
+
+        if use_cuda:
+            self._make_cuda()
+
 
 class Batch:
     """Object for holding a batch of data with mask during training.
@@ -26,7 +51,9 @@ class Batch:
         :param pad_index:
         :param use_cuda:
         """
-        self.src, self.src_lengths = torch_batch.src
+        src_temp = nn.utils.rnn.pad_sequence(torch_batch.src[0], batch_first=False).unsqueeze(1).transpose(2, 3) # 32x1xT, will aber 32xT
+        #self.src, self.src_lengths = torch_batch.src
+        self.src, self.src_lengths = src_temp, src_temp.shape[-1]
         self.src_mask = (self.src != pad_index).unsqueeze(1)
         self.nseqs = self.src.size(0)
         self.trg_input = None

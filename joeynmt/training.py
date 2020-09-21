@@ -18,23 +18,30 @@ import torch
 from torch import Tensor
 from torch.utils.tensorboard import SummaryWriter
 
+from torchtext.data import Field
 from torchtext.data import Dataset
+from torchtext.data import BucketIterator
 
 from joeynmt.model import build_model
-from joeynmt.batch import Batch
+from joeynmt.batch import Batch, BatchBatch
 from joeynmt.helpers import log_data_info, load_config, log_cfg, \
     store_attention_plots, load_checkpoint, make_model_dir, \
     make_logger, set_seed, symlink_update, ConfigurationError
 from joeynmt.model import Model
 from joeynmt.prediction import validate_on_data
 from joeynmt.loss import XentLoss
-from joeynmt.data import load_data, make_data_iter
+from joeynmt.data import load_data, make_data_iter, Entry
 from joeynmt.builders import build_optimizer, build_scheduler, \
     build_gradient_clipper
 from joeynmt.prediction import test
 
 
+class Noprocessfield(Field):
+    def process(self, batch, device):
+        return batch
 # pylint: disable=too-many-instance-attributes
+
+
 class TrainManager:
     """ Manages training loop, validations, learning rate scheduling
     and early stopping."""
@@ -275,10 +282,81 @@ class TrainManager:
         :param train_data: training data
         :param valid_data: validation data
         """
+        '''
+        class Entry():
+            def __init__(self, src, trg):
+                self.src = src
+                self.trg = trg
+
+        tok_fun = lambda s: s.split()
+
+        UNK_TOKEN = '<unk>'
+        PAD_TOKEN = '<pad>'
+        BOS_TOKEN = '<s>'
+        EOS_TOKEN = '</s>'
+        lowercase = True
+
+        src_field = data.Field(init_token=None, eos_token=EOS_TOKEN,
+                               pad_token=PAD_TOKEN, tokenize=tok_fun,
+                               batch_first=True, lower=lowercase,
+                               unk_token=UNK_TOKEN,
+                               include_lengths=True)
+        src_field.build_vocab()
+
+        trg_field = data.Field(init_token=BOS_TOKEN, eos_token=EOS_TOKEN,
+                               pad_token=PAD_TOKEN, tokenize=tok_fun,
+                               unk_token=UNK_TOKEN,
+                               batch_first=True, lower=lowercase,
+                               include_lengths=True)
+        trg_field.build_vocab()
+
+        dataset = data.Dataset([Entry(str(i), str(i + 1)) for i in range(0, 1024)],
+                               [('src', src_field), ('trg', trg_field)])
+        data_iter = data.BucketIterator(
+            repeat=False, sort=False, dataset=dataset,
+            batch_size=32, batch_size_fn=None,
+            train=True, sort_within_batch=True,
+            sort_key=lambda x: len(x.src), shuffle=True)
+
+        for i, batch in enumerate(iter(data_iter)):
+            print("torchtext batch:", batch)
+            # create a Batch object from torchtext batch
+            batch = Batch(batch, 0)
+            print("joeynmt batch:", batch)
+            
+            '''
+        # Todo: maybe only variables in the field need to be changed to use the torchtext dataset
+        # No, bad brain!
         train_iter = train_data #make_data_iter(train_data,
                                  #   batch_size=self.batch_size,
                                   #  batch_type=self.batch_type,
                                    # train=True, shuffle=self.shuffle)
+        UNK_TOKEN = '<unk>'
+        PAD_TOKEN = '<pad>'
+        BOS_TOKEN = '<s>'
+        EOS_TOKEN = '</s>'
+        lowercase = True
+        tok_fun = lambda s: s.split()
+
+        src_field = Noprocessfield(sequential=False, use_vocab=False, dtype=torch.double)
+        trg_field = Field(init_token=BOS_TOKEN, eos_token=EOS_TOKEN,
+                               pad_token=PAD_TOKEN, tokenize=tok_fun,
+                               unk_token=UNK_TOKEN,
+                               batch_first=True, lower=lowercase,
+                               include_lengths=True)
+        trg_field.build_vocab()
+
+        entry_list = []
+        for i, batch in enumerate(iter(train_iter)):
+            # reactivate training
+            entry_list.append(Entry(batch[0][0], batch[0][1]))
+        train_list = Dataset(entry_list, [('src', src_field), ('trg', trg_field)])
+        data_iter = BucketIterator(
+            repeat=False, sort=False, dataset=train_list,
+            batch_size=32, batch_size_fn=None,
+            train=True, sort_within_batch=True,
+            sort_key=lambda x: len(x.src), shuffle=True)
+
 
         # For last batch in epoch batch_multiplier needs to be adjusted
         # to fit the number of leftover training examples
@@ -302,7 +380,7 @@ class TrainManager:
             count = self.current_batch_multiplier - 1
             epoch_loss = 0
 
-            for i, batch in enumerate(iter(train_iter)):
+            for i, batch in enumerate(iter(data_iter)):
                 # reactivate training
                 # Todo: batch muss Attribut src und trg kriegen
                 # Todo: Eigene Batch-Klasse schreiben mit src und trg so wie Batch() das möchte
@@ -311,7 +389,7 @@ class TrainManager:
                 self.model.train()
                 # create a Batch object from torchtext batch
 
-                batch = Batch(batch, self.pad_index, use_cuda=self.use_cuda)
+                batch = Batch(batch, self.pad_index, use_cuda=self.use_cuda) # 32x1xT
                 print("How does batch look like?")
                 print(batch)
                 # only update every batch_multiplier batches
@@ -319,7 +397,7 @@ class TrainManager:
                 # increasing-mini-batch-size-without-increasing-
                 # memory-6794e10db672
 
-                # Set current_batch_mutliplier to fit
+                # Set current_batch_multiplier to fit
                 # number of leftover examples for last batch in epoch
                 # Only works if batch_type == sentence
                 if self.batch_type == "sentence":

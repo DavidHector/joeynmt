@@ -112,7 +112,7 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Optional[Dataset],
     # Done: make vocabulary manually, using Vocabulary class (only for target)
     # Todo: schauen wo fields impact haben und entfernen (torchaudio kennt keine fields)
     # Todo: schauen wo src_vocab benutzt wird (haben wir ja jetzt nicht mehr) z.B. in model len(src_vocab) -> hop_length
-    train_data = DataLoader(train_data_torchaudio, batch_size=10, shuffle=False, collate_fn= lambda x: preprocess_data(x, type="train"))
+    train_data = DataLoader(train_data_torchaudio, batch_size=len(train_data_torchaudio), shuffle=False, collate_fn= lambda x: preprocess_data(x, type="train"))
 
     random_train_subset = data_cfg.get("random_train_subset", -1)
     # Todo: delete this bc unnecessary? + split doesnt work with our train_data object
@@ -196,6 +196,14 @@ def make_data_iter(dataset: Dataset,
             train=False, sort=False)
 
     return data_iter
+
+# Todo: Neue Audiotextdaten-Klasse schreiben, damit wir nicht alle Abhängigkeiten ändern müssen
+
+
+class Entry():
+    def __init__(self, src, trg):
+        self.src = src
+        self.trg = trg
 
 
 class MonoDataset(Dataset):
