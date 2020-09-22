@@ -51,9 +51,15 @@ class Batch:
         :param pad_index:
         :param use_cuda:
         """
-        src_temp = nn.utils.rnn.pad_sequence(torch_batch.src[0], batch_first=False).unsqueeze(1).transpose(2, 3) # 32x1xT, will aber 32xT
+        batchsrctemp = []
+        for i in torch_batch.src:
+            batchsrctemp.append(i.transpose(0, 1))
+        src_temp = nn.utils.rnn.pad_sequence(batchsrctemp, batch_first=True) # list10 x tensor201 x len
         #self.src, self.src_lengths = torch_batch.src
-        self.src, self.src_lengths = src_temp, src_temp.shape[-1]
+        self.src = src_temp # was ist das? Src.length sollte 201 sein (=embed) 201x1x?x1
+        self.src_lengths = torch.zeros(self.src.shape[0])
+        for i in range(len(self.src)):
+            self.src_lengths[i] = len(self.src[i])
         self.src_mask = (self.src != pad_index).unsqueeze(1)
         self.nseqs = self.src.size(0)
         self.trg_input = None

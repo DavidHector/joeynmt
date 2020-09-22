@@ -338,7 +338,7 @@ class TrainManager:
         lowercase = True
         tok_fun = lambda s: s.split()
 
-        src_field = Noprocessfield(sequential=False, use_vocab=False, dtype=torch.double)
+        src_field = Noprocessfield(sequential=False, use_vocab=False, dtype=torch.double, include_lengths=True)
         trg_field = Field(init_token=BOS_TOKEN, eos_token=EOS_TOKEN,
                                pad_token=PAD_TOKEN, tokenize=tok_fun,
                                unk_token=UNK_TOKEN,
@@ -349,13 +349,12 @@ class TrainManager:
         entry_list = []
         for i, batch in enumerate(iter(train_iter)):
             # reactivate training
-            entry_list.append(Entry(batch[0][0], batch[0][1]))
+            entry_list.append(Entry(batch[0][0].squeeze(), batch[0][1]))
         train_list = Dataset(entry_list, [('src', src_field), ('trg', trg_field)])
-        data_iter = BucketIterator(
-            repeat=False, sort=False, dataset=train_list,
-            batch_size=32, batch_size_fn=None,
-            train=True, sort_within_batch=True,
-            sort_key=lambda x: len(x.src), shuffle=True)
+        data_iter = make_data_iter(train_list,
+                                    batch_size=self.batch_size,
+                                    batch_type=self.batch_type,
+                                    train=True, shuffle=self.shuffle)
 
 
         # For last batch in epoch batch_multiplier needs to be adjusted
@@ -382,7 +381,6 @@ class TrainManager:
 
             for i, batch in enumerate(iter(data_iter)):
                 # reactivate training
-                # Todo: batch muss Attribut src und trg kriegen
                 # Todo: Eigene Batch-Klasse schreiben mit src und trg so wie Batch() das möchte
                 # Todo: Vlt das eigene Dataset mit fields erweitern
                 # batch = ownbatch(batch)
@@ -390,8 +388,6 @@ class TrainManager:
                 # create a Batch object from torchtext batch
 
                 batch = Batch(batch, self.pad_index, use_cuda=self.use_cuda) # 32x1xT
-                print("How does batch look like?")
-                print(batch)
                 # only update every batch_multiplier batches
                 # see https://medium.com/@davidlmorton/
                 # increasing-mini-batch-size-without-increasing-
