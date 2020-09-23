@@ -8,8 +8,6 @@ import os
 import os.path
 from typing import Optional
 
-import spacy
-import pandas as pd
 from torchtext.datasets import TranslationDataset
 from torchtext import data
 from torchtext.data import Dataset, Iterator, Field
@@ -19,6 +17,8 @@ from joeynmt.constants import UNK_TOKEN, EOS_TOKEN, BOS_TOKEN, PAD_TOKEN
 from joeynmt.vocabulary import build_vocab, Vocabulary
 from torchtext.data import get_tokenizer
 from torch.utils.data import DataLoader
+
+from .datasets.commonvoice import COMMONVOICE
 
 
 # client_id	    path	sentence	up_votes	down_votes	age	gender	accent	locale	segment
@@ -101,7 +101,7 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Optional[Dataset],
     trg_vocab_file = data_cfg.get("trg_vocab", None)
     language = data_cfg.get("language", "esperanto")
 
-    train_data_torchaudio = torchaudio.datasets.COMMONVOICE('./', url=language, download=True)
+    train_data_torchaudio = COMMONVOICE('CommonVoice', language=language, download=True)
     trg_vocab = build_vocab(min_freq=trg_min_freq,
                             max_size=trg_max_size,
                             dataset=train_data_torchaudio, vocab_file=trg_vocab_file)
@@ -124,13 +124,13 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Optional[Dataset],
             random_state=random.getstate())
         train_data = keep
 
-    dev_data = torchaudio.datasets.COMMONVOICE('./', url=language, tsv='dev.tsv', download=True)
+    dev_data = COMMONVOICE('CommonVoice', language=language, tsv='dev.tsv')
 
     test_data = None
     if test_path is not None:
         # check if target exists
         if os.path.isfile(test_path + "." + trg_lang):
-            test_data = torchaudio.datasets.COMMONVOICE('./', url=language,tsv='test.tsv', download=True)
+            test_data = COMMONVOICE('CommonVoice', language=language, tsv='test.tsv')
         # Todo: MonoDataset from Audio only makes no sense. Delete?
         else:
             # no target is given -> create dataset from src only
