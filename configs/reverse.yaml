@@ -5,9 +5,9 @@ data:
     trg: "trg"
     # generate data with scripts/generate_reverse_task.py
     language: "esperanto"
-    train: "test/data/reverse/train"
-    dev: "test/data/reverse/dev"
-    test: "test/data/reverse/test"
+    train: 'minitrain.tsv'
+    dev: 'minitrain.tsv'
+    test: "minitrain.tsv"
     level: "word"
     lowercase: False
     max_sent_length: 25
@@ -36,7 +36,7 @@ training:
     decrease_factor: 0.5
     early_stopping_metric: "eval_metric"
     epochs: 1
-    validation_freq: 1000
+    validation_freq: 1
     logging_freq: 100
     eval_metric: "bleu"
     model_dir: "reverse_model"

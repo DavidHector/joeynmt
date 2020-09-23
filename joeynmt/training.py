@@ -327,31 +327,9 @@ class TrainManager:
             '''
         # Todo: maybe only variables in the field need to be changed to use the torchtext dataset
         # No, bad brain!
-        train_iter = train_data #make_data_iter(train_data,
-                                 #   batch_size=self.batch_size,
-                                  #  batch_type=self.batch_type,
-                                   # train=True, shuffle=self.shuffle)
-        UNK_TOKEN = '<unk>'
-        PAD_TOKEN = '<pad>'
-        BOS_TOKEN = '<s>'
-        EOS_TOKEN = '</s>'
-        lowercase = True
-        tok_fun = lambda s: s.split()
 
-        src_field = Noprocessfield(sequential=False, use_vocab=False, dtype=torch.double, include_lengths=True)
-        trg_field = Field(init_token=BOS_TOKEN, eos_token=EOS_TOKEN,
-                               pad_token=PAD_TOKEN, tokenize=tok_fun,
-                               unk_token=UNK_TOKEN,
-                               batch_first=True, lower=lowercase,
-                               include_lengths=True)
-        trg_field.build_vocab()
 
-        entry_list = []
-        for i, batch in enumerate(iter(train_iter)):
-            # reactivate training
-            entry_list.append(Entry(batch[0][0].squeeze(), batch[0][1]))
-        train_list = Dataset(entry_list, [('src', src_field), ('trg', trg_field)])
-        data_iter = make_data_iter(train_list,
+        data_iter = make_data_iter(train_data,
                                     batch_size=self.batch_size,
                                     batch_type=self.batch_type,
                                     train=True, shuffle=self.shuffle)
@@ -494,14 +472,14 @@ class TrainManager:
                         valid_score=valid_score, valid_loss=valid_loss,
                         valid_ppl=valid_ppl, eval_metric=self.eval_metric,
                         new_best=new_best)
-
-                    self._log_examples(
-                        sources_raw=[v for v in valid_sources_raw],
-                        sources=valid_sources,
-                        hypotheses_raw=valid_hypotheses_raw,
-                        hypotheses=valid_hypotheses,
-                        references=valid_references
-                    )
+                    #TODO: If we want logging, need to fix this function:
+                    # self._log_examples(
+                    #     sources_raw=[v for v in valid_sources_raw],
+                    #     sources=valid_sources,
+                    #     hypotheses_raw=valid_hypotheses_raw,
+                    #     hypotheses=valid_hypotheses,
+                    #     references=valid_references
+                    # )
 
                     valid_duration = time.time() - valid_start_time
                     total_valid_duration += valid_duration
