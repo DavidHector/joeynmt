@@ -78,3 +78,6 @@
 2020-09-23 18:32:12,796 Saving new checkpoint.
 2020-09-23 18:32:12,803 Validation result (greedy) at epoch   1, step        1: bleu:   0.00, loss: 3315.2754, ppl:  75.7953, duration: 0.9932s
 2020-09-23 18:42:24,622 Validation result (greedy) at epoch   1, step        2: bleu:   0.00, loss: 3088.4209, ppl:  56.3668, duration: 1.0108s
+2020-09-23 18:52:19,439 Epoch   1: total training loss 365.22
+2020-09-23 18:52:19,442 Training ended after   1 epochs.
+2020-09-23 18:52:19,442 Best validation result (greedy) at step        1:   0.00 eval_metric.
