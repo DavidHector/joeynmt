@@ -77,7 +77,8 @@ def validate_on_data(model: Model, data: Dataset,
         dataset=data, batch_size=batch_size, batch_type=batch_type,
         shuffle=False, train=False)
     valid_sources_raw = data.src
-    pad_index = model.src_vocab.stoi[PAD_TOKEN]
+    #pad_index = model.src_vocab.stoi[PAD_TOKEN]
+    pad_index = model.pad_index
     # disable dropout
     model.eval()
     # don't track gradients during validation
@@ -130,13 +131,14 @@ def validate_on_data(model: Model, data: Dataset,
 
         # evaluate with metric on full dataset
         join_char = " " if level in ["word", "bpe"] else ""
-        valid_sources = [join_char.join(s) for s in data.src]
+        #valid_sources = [join_char.join(s) for s in data.src]
+        valid_sources = None
         valid_references = [join_char.join(t) for t in data.trg]
         valid_hypotheses = [join_char.join(t) for t in decoded_valid]
 
         # post-process
         if level == "bpe" and postprocess:
-            valid_sources = [bpe_postprocess(s) for s in valid_sources]
+            #valid_sources = [bpe_postprocess(s) for s in valid_sources]
             valid_references = [bpe_postprocess(v)
                                 for v in valid_references]
             valid_hypotheses = [bpe_postprocess(v) for

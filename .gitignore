@@ -1,4 +1,5 @@
 .idea/*
+reverse_model/*
 build/*
 dist/*
 *.egg-info/*
