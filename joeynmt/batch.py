@@ -54,13 +54,20 @@ class Batch:
         batchsrctemp = []
         for i in torch_batch.src:
             batchsrctemp.append(i.transpose(0, 1))
-        src_temp = nn.utils.rnn.pad_sequence(batchsrctemp, batch_first=True) # list10 x tensor201 x len
+        src_temp = nn.utils.rnn.pad_sequence(batchsrctemp, batch_first=True, padding_value=pad_index) # list10 x tensor201 x len
         #self.src, self.src_lengths = torch_batch.src
-        self.src = src_temp # was ist das? Src.length sollte 201 sein (=embed) 201x1x?x1
+        self.src = src_temp # .transpose(1, 2) # was ist das? Src.length sollte 201 sein (=embed) 201x1x?x1
         self.src_lengths = torch.zeros(self.src.shape[0])
+        self.src_mask = torch.full((self.src.shape[0], self.src.shape[1]), True, dtype=bool)
+        self.pad_vector = torch.full((self.src.shape[2],), pad_index, dtype=self.src.dtype)
         for i in range(len(self.src)):
             self.src_lengths[i] = len(self.src[i])
-        self.src_mask = (self.src != pad_index).unsqueeze(1)
+            for j in range(len(self.src[i])):
+                if (self.src[i][j] == self.pad_vector).all():
+                    self.src_mask[i][j] = False
+        self.src_mask = self.src_mask.unsqueeze(1)
+        # Was wir eigentlich bräuchten, ist eine Maske 10xL, die für die PaddingVEKTOREN einen Eintrag False hat
+        # self.src_mask = (self.src.transpose(1, 2) != pad_index).unsqueeze(1)  # mask for attention sollte 10x1xL sein, nein ,weil wir keine indices haben, sondern die encodings
         self.nseqs = self.src.size(0)
         self.trg_input = None
         self.trg = None
