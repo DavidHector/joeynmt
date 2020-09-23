@@ -17,6 +17,7 @@ from joeynmt.constants import UNK_TOKEN, EOS_TOKEN, BOS_TOKEN, PAD_TOKEN
 from joeynmt.vocabulary import build_vocab, Vocabulary
 from torchtext.data import get_tokenizer
 from torch.utils.data import DataLoader
+from .datasets.commonvoice import COMMONVOICE
 
 
 class Noprocessfield(Field):
@@ -113,7 +114,8 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Optional[Dataset],
     trg_vocab_file = data_cfg.get("trg_vocab", None)
     language = data_cfg.get("language", "esperanto")
 
-    train_data_torchaudio = torchaudio.datasets.COMMONVOICE(train_path, url=language, download=True, tsv='minitrain.tsv')
+    #train_data_torchaudio = torchaudio.datasets.COMMONVOICE(train_path, url=language, download=True, tsv='minitrain.tsv')
+    train_data_torchaudio = COMMONVOICE('CommonVoice', language=language, download=True)#, tsv=train_path)
     # changed the dataset from a Translation Dataset to torchaudio dataset.
     # created DataLoader which can be used in existing data training loop
     # made preprocessing function
@@ -130,18 +132,19 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Optional[Dataset],
     #         random_state=random.getstate())
     #     train_data = keep
 
-    dev_data_torchaudio = torchaudio.datasets.COMMONVOICE(dev_path, url=language, tsv='minitrain.tsv', download=True)
+    dev_data_torchaudio = COMMONVOICE('CommonVoice', language=language)#, tsv=dev_path)#, download=True)
     dev_data = DataLoader(dev_data_torchaudio, batch_size=1, shuffle=False, collate_fn= lambda x: preprocess_data(x, type="dev"))
 
     test_data = None
     if test_path is not None:
         # check if target exists
-        test_data_torchaudio = torchaudio.datasets.COMMONVOICE(test_path, url=language,tsv='test.tsv', download=True)
+        test_data_torchaudio = COMMONVOICE('CommonVoice', language=language)#,tsv=test_path)#, download=True)
         test_data = DataLoader(test_data_torchaudio, batch_size=1, shuffle=False, collate_fn=lambda x: preprocess_data(x, type="test"))
         test_data, test_trg_vocab, test_src_field, test_trg_field = reformat_data(test_data, test_data_torchaudio,
                                                                               trg_min_freq, trg_max_size,
                                                                               trg_vocab_file, lowercase=lowercase)
 
+    # Todo: same processing we did for train_data, has to be used for dev_data and valid_data
     train_data, trg_vocab, src_field, trg_field = reformat_data(train_data, train_data_torchaudio, trg_min_freq, trg_max_size, trg_vocab_file, lowercase=lowercase)
     dev_data, dev_trg_vocab, dev_src_field, dev_trg_field = reformat_data(dev_data, dev_data_torchaudio, trg_min_freq, trg_max_size, trg_vocab_file, lowercase=lowercase)
 
