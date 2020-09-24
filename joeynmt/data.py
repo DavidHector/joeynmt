@@ -115,7 +115,7 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Optional[Dataset],
     language = data_cfg.get("language", "esperanto")
 
     #train_data_torchaudio = torchaudio.datasets.COMMONVOICE(train_path, url=language, download=True, tsv='minitrain.tsv')
-    train_data_torchaudio = COMMONVOICE('CommonVoice', language=language, download=True)#, tsv=train_path)
+    train_data_torchaudio = COMMONVOICE('CommonVoice', language=language, download=True, tsv=train_path)
     # changed the dataset from a Translation Dataset to torchaudio dataset.
     # created DataLoader which can be used in existing data training loop
     # made preprocessing function
@@ -132,13 +132,13 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Optional[Dataset],
     #         random_state=random.getstate())
     #     train_data = keep
 
-    dev_data_torchaudio = COMMONVOICE('CommonVoice', language=language)#, tsv=dev_path)#, download=True)
+    dev_data_torchaudio = COMMONVOICE('CommonVoice', language=language, tsv=dev_path)#, download=True)
     dev_data = DataLoader(dev_data_torchaudio, batch_size=1, shuffle=False, collate_fn= lambda x: preprocess_data(x, type="dev"))
 
     test_data = None
     if test_path is not None:
         # check if target exists
-        test_data_torchaudio = COMMONVOICE('CommonVoice', language=language)#,tsv=test_path)#, download=True)
+        test_data_torchaudio = COMMONVOICE('CommonVoice', language=language,tsv=test_path)#, download=True)
         test_data = DataLoader(test_data_torchaudio, batch_size=1, shuffle=False, collate_fn=lambda x: preprocess_data(x, type="test"))
         test_data, test_trg_vocab, test_src_field, test_trg_field = reformat_data(test_data, test_data_torchaudio,
                                                                               trg_min_freq, trg_max_size,
