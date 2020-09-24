@@ -5,9 +5,9 @@ data:
     trg: "trg"
     # generate data with scripts/generate_reverse_task.py
     language: "esperanto"
-    train: 'minitrain.tsv'
-    dev: 'minitrain.tsv'
-    test: "minitrain.tsv"
+    train: 'train.tsv'
+    dev: 'dev.tsv'
+    test: "test.tsv"
     level: "word"
     lowercase: False
     max_sent_length: 25
