@@ -16,7 +16,7 @@ from joeynmt.helpers import bpe_postprocess, load_config, make_logger,\
 from joeynmt.metrics import bleu, chrf, token_accuracy, sequence_accuracy
 from joeynmt.model import build_model, Model
 from joeynmt.batch import Batch
-from joeynmt.data import load_data, make_data_iter, MonoDataset
+from joeynmt.data import load_data, make_data_iter, MonoDataset, Noprocessfield
 from joeynmt.constants import UNK_TOKEN, PAD_TOKEN, EOS_TOKEN
 from joeynmt.vocabulary import Vocabulary
 
@@ -287,7 +287,7 @@ def test(cfg_file,
             logger.info("Translations saved to: %s", output_path_set)
 
 
-def translate(cfg_file, ckpt: str, output_path: str = None) -> None:
+def translate(cfg_file, ckpt: str, input_path: str, output_path: str = None) -> None:
     """
     Interactive translation function.
     Loads model from checkpoint and translates either the stdin input or
@@ -349,11 +349,8 @@ def translate(cfg_file, ckpt: str, output_path: str = None) -> None:
     max_output_length = cfg["training"].get("max_output_length", None)
 
     # read vocabs
-    src_vocab_file = cfg["data"].get(
-        "src_vocab", cfg["training"]["model_dir"] + "/src_vocab.txt")
     trg_vocab_file = cfg["data"].get(
         "trg_vocab", cfg["training"]["model_dir"] + "/trg_vocab.txt")
-    src_vocab = Vocabulary(file=src_vocab_file)
     trg_vocab = Vocabulary(file=trg_vocab_file)
 
     data_cfg = cfg["data"]
@@ -362,18 +359,13 @@ def translate(cfg_file, ckpt: str, output_path: str = None) -> None:
 
     tok_fun = lambda s: list(s) if level == "char" else s.split()
 
-    src_field = Field(init_token=None, eos_token=EOS_TOKEN,
-                      pad_token=PAD_TOKEN, tokenize=tok_fun,
-                      batch_first=True, lower=lowercase,
-                      unk_token=UNK_TOKEN,
-                      include_lengths=True)
-    src_field.vocab = src_vocab
+    src_field = Noprocessfield(sequential=False, use_vocab=False, dtype=torch.double, include_lengths=True)
 
     # load model state from disk
     model_checkpoint = load_checkpoint(ckpt, use_cuda=use_cuda)
 
     # build model and load parameters into it
-    model = build_model(cfg["model"], src_vocab=src_vocab, trg_vocab=trg_vocab)
+    model = build_model(cfg["model"], src_vocab=None, trg_vocab=trg_vocab)
     model.load_state_dict(model_checkpoint["model_state"])
 
     if use_cuda:
@@ -389,40 +381,18 @@ def translate(cfg_file, ckpt: str, output_path: str = None) -> None:
         beam_alpha = -1
         postprocess = True
 
-    if not sys.stdin.isatty():
-        # input file given
-        test_data = MonoDataset(path=sys.stdin, ext="", field=src_field)
-        hypotheses = _translate_data(test_data)
+    # input file given
+    test_data = MonoDataset(path=input_path, ext="", field=src_field)
+    hypotheses = _translate_data(test_data)
 
-        if output_path is not None:
-            # write to outputfile if given
-            output_path_set = "{}".format(output_path)
-            with open(output_path_set, mode="w", encoding="utf-8") as out_file:
-                for hyp in hypotheses:
-                    out_file.write(hyp + "\n")
-            logger.info("Translations saved to: %s.", output_path_set)
-        else:
-            # print to stdout
+    if output_path is not None:
+        # write to outputfile if given
+        output_path_set = "{}".format(output_path)
+        with open(output_path_set, mode="w", encoding="utf-8") as out_file:
             for hyp in hypotheses:
-                print(hyp)
-
+                out_file.write(hyp + "\n")
+        logger.info("Translations saved to: %s.", output_path_set)
     else:
-        # enter interactive mode
-        batch_size = 1
-        batch_type = "sentence"
-        while True:
-            try:
-                src_input = input("\nPlease enter a source sentence "
-                                  "(pre-processed): \n")
-                if not src_input.strip():
-                    break
-
-                # every line has to be made into dataset
-                test_data = _load_line_as_data(line=src_input)
-
-                hypotheses = _translate_data(test_data)
-                print("JoeyNMT: {}".format(hypotheses[0]))
-
-            except (KeyboardInterrupt, EOFError):
-                print("\nBye.")
-                break
+        # print to stdout
+        for hyp in hypotheses:
+            print(hyp)

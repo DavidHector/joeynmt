@@ -1,7 +1,7 @@
 name: "speech_to_text"
 
 data:
-    language: "esperanto" # Common Voice language
+    language: "indonesian" # Common Voice language
     train: "train.tsv"
     dev: "dev.tsv"
     test: "test.tsv"
@@ -18,21 +18,19 @@ testing:
     alpha: 1.0
 
 training:
-    random_seed: 42
     optimizer: "adam"
-    learning_rate: 0.001
-    learning_rate_min: 0.0002
+    learning_rate: 0.0002
     weight_decay: 0.0
     clip_grad_norm: 1.0
-    batch_size: 10
+    batch_size: 20
     batch_type: "sentence"
     scheduling: "plateau"
     patience: 5
     decrease_factor: 0.5
-    early_stopping_metric: "eval_metric"
-    epochs: 1
-    validation_freq: 1
-    logging_freq: 100
+    early_stopping_metric: "loss"
+    epochs: 2
+    validation_freq: 100
+    logging_freq: 50
     eval_metric: "bleu"
     model_dir: "stt_model"
     overwrite: True
@@ -52,7 +50,7 @@ model:
     encoder:
         rnn_type: "gru"
         embeddings:
-            embedding_dim: 201
+            embedding_dim: 40
             scale: False
         hidden_size: 5
         bidirectional: True

@@ -24,28 +24,23 @@ class Noprocessfield(Field):
     def process(self, batch, device):
         return batch
 
+def prepare_audio(input_audio, input_samplerate):
+    #letter_sample_rate = int(hop_length/letter_width)
+    #downsampler = torchaudio.transforms.Resample(input_samplerate, letter_sample_rate, resampling_method='sinc_interpolation')
+    #input_audio = downsampler(input_audio)
+    #spectrogram = torchaudio.transforms.MelSpectrogram(n_fft=hop_length, hop_length=hop_length)(input_audio)
+    return torchaudio.transforms.MFCC(input_samplerate, log_mels=True)(input_audio)
+
+
 def preprocess_data_single_entry(input_tuple, type="train", letter_width=0.02, hop_length=400):
     # letter_width=length of single spoken letter in s
     # hop_length = frequency resolution of spectrogram (also determines the letter width)
 
     input_audio, input_samplerate, input_dict = input_tuple[0], input_tuple[1], input_tuple[2]
 
-    letter_sample_rate = int(hop_length/letter_width)
-    downsampler = torchaudio.transforms.Resample(input_samplerate, letter_sample_rate, resampling_method='sinc_interpolation')
-    input_audio = downsampler(input_audio)
+    spectrogram = prepare_audio(input_audio, input_samplerate)
 
-    if type == "train":
-        audio_transforms = torch.nn.Sequential(
-            torchaudio.transforms.MelSpectrogram(n_fft=hop_length, hop_length=hop_length),
-            torchaudio.transforms.FrequencyMasking(freq_mask_param=15),
-            torchaudio.transforms.TimeMasking(time_mask_param=35)
-        )
-    else:
-        audio_transforms = torchaudio.transforms.MelSpectrogram(n_fft=hop_length, hop_length=hop_length)
-
-    spectrogram = audio_transforms(input_audio)
     sentence = input_dict['sentence']
-
     tokenizer = get_tokenizer("basic_english")
     tokens = tokenizer(sentence)
     sentence = " ".join(tokens)
@@ -137,7 +132,7 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Optional[Dataset],
                                                                               trg_min_freq, trg_max_size,
                                                                               trg_vocab_file, lowercase=lowercase)
 
-    # Todo: same processing we did for train_data, has to be used for dev_data and valid_data
+    # Same processing we did for test_data, has to be used for train_data and dev_data
     train_data, trg_vocab, src_field, trg_field = reformat_data(train_data, train_data_torchaudio, trg_min_freq, trg_max_size, trg_vocab_file, lowercase=lowercase)
     dev_data, dev_trg_vocab, dev_src_field, dev_trg_field = reformat_data(dev_data, dev_data_torchaudio, trg_min_freq, trg_max_size, trg_vocab_file, lowercase=lowercase)
 
@@ -230,19 +225,10 @@ class MonoDataset(Dataset):
 
         fields = [('src', field)]
 
-        if hasattr(path, "readline"):  # special usage: stdin
-            src_file = path
-        else:
-            src_path = os.path.expanduser(path + ext)
-            src_file = open(src_path)
+        src_path = os.path.expanduser(path + ext)
 
-        examples = []
-        for src_line in src_file:
-            src_line = src_line.strip()
-            if src_line != '':
-                examples.append(data.Example.fromlist(
-                    [src_line], fields))
-
-        src_file.close()
+        waveform, sample_rate = torchaudio.load(src_path)
+        spectrogram = prepare_audio(waveform, sample_rate)
+        examples = [Entry(spectrogram.squeeze(), None)]
 
         super(MonoDataset, self).__init__(examples, fields, **kwargs)

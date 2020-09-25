@@ -282,49 +282,6 @@ class TrainManager:
         :param train_data: training data
         :param valid_data: validation data
         """
-        '''
-        class Entry():
-            def __init__(self, src, trg):
-                self.src = src
-                self.trg = trg
-
-        tok_fun = lambda s: s.split()
-
-        UNK_TOKEN = '<unk>'
-        PAD_TOKEN = '<pad>'
-        BOS_TOKEN = '<s>'
-        EOS_TOKEN = '</s>'
-        lowercase = True
-
-        src_field = data.Field(init_token=None, eos_token=EOS_TOKEN,
-                               pad_token=PAD_TOKEN, tokenize=tok_fun,
-                               batch_first=True, lower=lowercase,
-                               unk_token=UNK_TOKEN,
-                               include_lengths=True)
-        src_field.build_vocab()
-
-        trg_field = data.Field(init_token=BOS_TOKEN, eos_token=EOS_TOKEN,
-                               pad_token=PAD_TOKEN, tokenize=tok_fun,
-                               unk_token=UNK_TOKEN,
-                               batch_first=True, lower=lowercase,
-                               include_lengths=True)
-        trg_field.build_vocab()
-
-        dataset = data.Dataset([Entry(str(i), str(i + 1)) for i in range(0, 1024)],
-                               [('src', src_field), ('trg', trg_field)])
-        data_iter = data.BucketIterator(
-            repeat=False, sort=False, dataset=dataset,
-            batch_size=32, batch_size_fn=None,
-            train=True, sort_within_batch=True,
-            sort_key=lambda x: len(x.src), shuffle=True)
-
-        for i, batch in enumerate(iter(data_iter)):
-            print("torchtext batch:", batch)
-            # create a Batch object from torchtext batch
-            batch = Batch(batch, 0)
-            print("joeynmt batch:", batch)
-            
-            '''
 
         if self.use_cuda:
             print("CUDA is enabled")
