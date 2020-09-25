@@ -325,9 +325,16 @@ class TrainManager:
             print("joeynmt batch:", batch)
             
             '''
-        # Todo: maybe only variables in the field need to be changed to use the torchtext dataset
-        # No, bad brain!
 
+        if self.use_cuda:
+            print("CUDA is enabled")
+            if torch.cuda.is_available():
+                print("CUDA is available")
+                print("CUDA device:", torch.cuda.get_device_name(torch.cuda.current_device()))
+            else:
+                print("No CUDA available")
+        else:
+            print("CUDA is disabled")
 
         data_iter = make_data_iter(train_data,
                                     batch_size=self.batch_size,
@@ -375,7 +382,7 @@ class TrainManager:
                 # number of leftover examples for last batch in epoch
                 # Only works if batch_type == sentence
                 if self.batch_type == "sentence":
-                    if self.batch_multiplier > 1 and i == len(train_iter) - \
+                    if self.batch_multiplier > 1 and i == len(data_iter) - \
                             math.ceil(leftover_batch_size / self.batch_size):
                         self.current_batch_multiplier = math.ceil(
                             leftover_batch_size / self.batch_size)
