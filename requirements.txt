@@ -11,6 +11,6 @@ matplotlib
 seaborn
 pyyaml>=5.1
 pylint
-six==1.12
+six
 wrapt==1.11.1
 torchaudio==0.6.0
