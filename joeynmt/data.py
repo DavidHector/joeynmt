@@ -24,12 +24,21 @@ class Noprocessfield(Field):
     def process(self, batch, device):
         return batch
 
-def prepare_audio(input_audio, input_samplerate):
-    #letter_sample_rate = int(hop_length/letter_width)
-    #downsampler = torchaudio.transforms.Resample(input_samplerate, letter_sample_rate, resampling_method='sinc_interpolation')
-    #input_audio = downsampler(input_audio)
-    #spectrogram = torchaudio.transforms.MelSpectrogram(n_fft=hop_length, hop_length=hop_length)(input_audio)
-    return torchaudio.transforms.MFCC(input_samplerate, log_mels=True)(input_audio)
+def prepare_audio(input_audio, input_samplerate, type, letter_width=0.02, hop_length=400):
+    letter_sample_rate = int(hop_length/letter_width)
+    if type == "train":
+        audio_transforms = torch.nn.Sequential(
+            torchaudio.transforms.Resample(input_samplerate, letter_sample_rate, resampling_method='sinc_interpolation'),
+            torchaudio.transforms.MelSpectrogram(sample_rate=letter_sample_rate, n_fft=hop_length, hop_length=hop_length, n_mels=128),
+            torchaudio.transforms.FrequencyMasking(freq_mask_param=15),
+            torchaudio.transforms.TimeMasking(time_mask_param=35)
+        )
+    else:
+        audio_transforms = torch.nn.Sequential(
+            torchaudio.transforms.Resample(input_samplerate, letter_sample_rate, resampling_method='sinc_interpolation'),
+            torchaudio.transforms.MelSpectrogram(sample_rate=letter_sample_rate, n_fft=hop_length, hop_length=hop_length, n_mels=128),
+        )
+    return audio_transforms(input_audio)
 
 
 def preprocess_data_single_entry(input_tuple, type="train", letter_width=0.02, hop_length=400):
@@ -38,7 +47,7 @@ def preprocess_data_single_entry(input_tuple, type="train", letter_width=0.02, h
 
     input_audio, input_samplerate, input_dict = input_tuple[0], input_tuple[1], input_tuple[2]
 
-    spectrogram = prepare_audio(input_audio, input_samplerate)
+    spectrogram = prepare_audio(input_audio, input_samplerate, type, letter_width, hop_length)
 
     sentence = input_dict['sentence']
     tokenizer = get_tokenizer("basic_english")
@@ -228,7 +237,7 @@ class MonoDataset(Dataset):
         src_path = os.path.expanduser(path + ext)
 
         waveform, sample_rate = torchaudio.load(src_path)
-        spectrogram = prepare_audio(waveform, sample_rate)
+        spectrogram = prepare_audio(waveform, sample_rate, "predict")
         examples = [Entry(spectrogram.squeeze(), None)]
 
         super(MonoDataset, self).__init__(examples, fields, **kwargs)
