@@ -5,5 +5,6 @@ dist/*
 *.egg-info/*
 docs/build/*
 *__pycache__*
-CommonVoice
+CommonVoice/
+stt_model/
 venv

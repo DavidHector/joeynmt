@@ -22,6 +22,8 @@ def main():
 
     ap.add_argument("--save_attention", action="store_true",
                     help="save attention visualizations")
+    
+    ap.add_argument('--input_path', type=str, help="The file to transcribe")
 
     args = ap.parse_args()
 
@@ -31,7 +33,10 @@ def main():
         test(cfg_file=args.config_path, ckpt=args.ckpt,
              output_path=args.output_path, save_attention=args.save_attention)
     elif args.mode == "translate":
+        if not args.input_path:
+            raise ValueError("No input provided")
         translate(cfg_file=args.config_path, ckpt=args.ckpt,
+                  input_path=args.input_path,
                   output_path=args.output_path)
     else:
         raise ValueError("Unknown mode")

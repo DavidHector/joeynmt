@@ -129,6 +129,7 @@ class COMMONVOICE(Dataset):
                     checksum = _CHECKSUMS.get(url, None)
                     download_url(url, root, hash_value=checksum)
                 extract_archive(archive)
+                os.remove(archive)
 
         self._tsv = os.path.join(self._path, tsv)
 

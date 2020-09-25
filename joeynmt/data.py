@@ -24,6 +24,22 @@ class Noprocessfield(Field):
     def process(self, batch, device):
         return batch
 
+def prepare_audio(input_audio, input_samplerate, type, letter_width=0.02, hop_length=400):
+    letter_sample_rate = int(hop_length/letter_width)
+    if type == "train":
+        audio_transforms = torch.nn.Sequential(
+            torchaudio.transforms.Resample(input_samplerate, letter_sample_rate, resampling_method='sinc_interpolation'),
+            torchaudio.transforms.MelSpectrogram(sample_rate=letter_sample_rate, n_fft=hop_length, hop_length=hop_length, n_mels=128),
+            torchaudio.transforms.FrequencyMasking(freq_mask_param=15),
+            torchaudio.transforms.TimeMasking(time_mask_param=35)
+        )
+    else:
+        audio_transforms = torch.nn.Sequential(
+            torchaudio.transforms.Resample(input_samplerate, letter_sample_rate, resampling_method='sinc_interpolation'),
+            torchaudio.transforms.MelSpectrogram(sample_rate=letter_sample_rate, n_fft=hop_length, hop_length=hop_length, n_mels=128),
+        )
+    return audio_transforms(input_audio)
+
 
 def preprocess_data_single_entry(input_tuple, type="train", letter_width=0.02, hop_length=400):
     # letter_width=length of single spoken letter in s
@@ -31,12 +47,9 @@ def preprocess_data_single_entry(input_tuple, type="train", letter_width=0.02, h
 
     input_audio, input_samplerate, input_dict = input_tuple[0], input_tuple[1], input_tuple[2]
 
-    letter_sample_rate = int(hop_length/letter_width)
-    downsampler = torchaudio.transforms.Resample(input_samplerate, letter_sample_rate, resampling_method='sinc_interpolation')
-    input_audio = downsampler(input_audio)
-    spectrogram = torchaudio.transforms.Spectrogram(n_fft=hop_length, hop_length=hop_length)(input_audio)
-    sentence = input_dict['sentence']
+    spectrogram = prepare_audio(input_audio, input_samplerate, type, letter_width, hop_length)
 
+    sentence = input_dict['sentence']
     tokenizer = get_tokenizer("basic_english")
     tokens = tokenizer(sentence)
     sentence = " ".join(tokens)
@@ -99,22 +112,16 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Optional[Dataset],
         - trg_vocab: target vocabulary extracted from training data
     """
     # load data from files
-    src_lang = data_cfg["src"]
-    trg_lang = data_cfg["trg"]
     train_path = data_cfg["train"]
     dev_path = data_cfg["dev"]
     test_path = data_cfg.get("test", None)
-    level = data_cfg["level"]
     lowercase = data_cfg["lowercase"]
-    max_sent_length = data_cfg["max_sent_length"]
-    tok_fun = lambda s: list(s) if level == "char" else s.split()
 
     trg_max_size = data_cfg.get("trg_voc_limit", sys.maxsize)
     trg_min_freq = data_cfg.get("trg_voc_min_freq", 1)
     trg_vocab_file = data_cfg.get("trg_vocab", None)
     language = data_cfg.get("language", "esperanto")
 
-    #train_data_torchaudio = torchaudio.datasets.COMMONVOICE(train_path, url=language, download=True, tsv='minitrain.tsv')
     train_data_torchaudio = COMMONVOICE('CommonVoice', language=language, download=True, tsv=train_path)
     # changed the dataset from a Translation Dataset to torchaudio dataset.
     # created DataLoader which can be used in existing data training loop
@@ -122,29 +129,19 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Optional[Dataset],
     # Done: make vocabulary manually, using Vocabulary class (only for target)
     train_data = DataLoader(train_data_torchaudio, batch_size=1, shuffle=False, collate_fn= lambda x: preprocess_data(x, type="train"))
 
-    # random_train_subset = data_cfg.get("random_train_subset", -1)
-    # # Todo: delete this bc unnecessary? + split doesnt work with our train_data object
-    # if random_train_subset > -1:
-    #     # select this many training examples randomly and discard the rest
-    #     keep_ratio = random_train_subset / len(train_data)
-    #     keep, _ = train_data.split(
-    #         split_ratio=[keep_ratio, 1 - keep_ratio],
-    #         random_state=random.getstate())
-    #     train_data = keep
-
-    dev_data_torchaudio = COMMONVOICE('CommonVoice', language=language, tsv=dev_path)#, download=True)
+    dev_data_torchaudio = COMMONVOICE('CommonVoice', language=language, tsv=dev_path)
     dev_data = DataLoader(dev_data_torchaudio, batch_size=1, shuffle=False, collate_fn= lambda x: preprocess_data(x, type="dev"))
 
     test_data = None
     if test_path is not None:
         # check if target exists
-        test_data_torchaudio = COMMONVOICE('CommonVoice', language=language,tsv=test_path)#, download=True)
+        test_data_torchaudio = COMMONVOICE('CommonVoice', language=language, tsv=test_path)
         test_data = DataLoader(test_data_torchaudio, batch_size=1, shuffle=False, collate_fn=lambda x: preprocess_data(x, type="test"))
         test_data, test_trg_vocab, test_src_field, test_trg_field = reformat_data(test_data, test_data_torchaudio,
                                                                               trg_min_freq, trg_max_size,
                                                                               trg_vocab_file, lowercase=lowercase)
 
-    # Todo: same processing we did for train_data, has to be used for dev_data and valid_data
+    # Same processing we did for test_data, has to be used for train_data and dev_data
     train_data, trg_vocab, src_field, trg_field = reformat_data(train_data, train_data_torchaudio, trg_min_freq, trg_max_size, trg_vocab_file, lowercase=lowercase)
     dev_data, dev_trg_vocab, dev_src_field, dev_trg_field = reformat_data(dev_data, dev_data_torchaudio, trg_min_freq, trg_max_size, trg_vocab_file, lowercase=lowercase)
 
@@ -237,19 +234,10 @@ class MonoDataset(Dataset):
 
         fields = [('src', field)]
 
-        if hasattr(path, "readline"):  # special usage: stdin
-            src_file = path
-        else:
-            src_path = os.path.expanduser(path + ext)
-            src_file = open(src_path)
+        src_path = os.path.expanduser(path + ext)
 
-        examples = []
-        for src_line in src_file:
-            src_line = src_line.strip()
-            if src_line != '':
-                examples.append(data.Example.fromlist(
-                    [src_line], fields))
-
-        src_file.close()
+        waveform, sample_rate = torchaudio.load(src_path)
+        spectrogram = prepare_audio(waveform, sample_rate, "predict")
+        examples = [Entry(spectrogram.squeeze(), None)]
 
         super(MonoDataset, self).__init__(examples, fields, **kwargs)
