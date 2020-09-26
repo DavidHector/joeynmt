@@ -26,33 +26,17 @@ class Noprocessfield(Field):
 
 def prepare_audio(input_audio, input_samplerate, type, letter_width=0.02, hop_length=400):
     letter_sample_rate = int(hop_length/letter_width)
-    if type == "train":
-        audio_transforms = torch.nn.Sequential(
-            torchaudio.transforms.Resample(input_samplerate, letter_sample_rate, resampling_method='sinc_interpolation'),
-            torchaudio.transforms.MelSpectrogram(sample_rate=letter_sample_rate, n_fft=hop_length, hop_length=hop_length, n_mels=128),
-            torchaudio.transforms.FrequencyMasking(freq_mask_param=15),
-            torchaudio.transforms.TimeMasking(time_mask_param=35)
-        )
-    else:
-        audio_transforms = torch.nn.Sequential(
-            torchaudio.transforms.Resample(input_samplerate, letter_sample_rate, resampling_method='sinc_interpolation'),
-            torchaudio.transforms.MelSpectrogram(sample_rate=letter_sample_rate, n_fft=hop_length, hop_length=hop_length, n_mels=128),
-        )
-    return audio_transforms(input_audio)
-
+    downsampler = torchaudio.transforms.Resample(input_samplerate, letter_sample_rate, resampling_method='sinc_interpolation')
+    spectrogram = torchaudio.transforms.MelSpectrogram(sample_rate=letter_sample_rate, n_mels=128, n_fft=hop_length, hop_length=hop_length)
+    return spectrogram(downsampler(input_audio))
 
 def preprocess_data_single_entry(input_tuple, type="train", letter_width=0.02, hop_length=400):
     # letter_width=length of single spoken letter in s
     # hop_length = frequency resolution of spectrogram (also determines the letter width)
 
     input_audio, input_samplerate, input_dict = input_tuple[0], input_tuple[1], input_tuple[2]
-
     spectrogram = prepare_audio(input_audio, input_samplerate, type, letter_width, hop_length)
-
     sentence = input_dict['sentence']
-    tokenizer = get_tokenizer("basic_english")
-    tokens = tokenizer(sentence)
-    sentence = " ".join(tokens)
 
     return spectrogram, sentence
 
@@ -64,12 +48,8 @@ def preprocess_data(input_list, type="train", letter_width=0.02, hop_length=400)
     return data
 
 
-def reformat_data(data, data_torchaudio, trg_min_freq, trg_max_size, trg_vocab_file, lowercase=True):
-    train_iter = data  # make_data_iter(train_data,
-    #   batch_size=self.batch_size,
-    #  batch_type=self.batch_type,
-    # train=True, shuffle=self.shuffle)
-    tok_fun = lambda s: s.split()
+def reformat_data(data, data_torchaudio, trg_min_freq, trg_max_size, tok_fun, trg_vocab_file=None, trg_vocab=None, lowercase=True):
+    train_iter = data
 
     src_field = Noprocessfield(sequential=False, use_vocab=False, dtype=torch.double, include_lengths=True)
     trg_field = Field(init_token=BOS_TOKEN, eos_token=EOS_TOKEN,
@@ -77,7 +57,8 @@ def reformat_data(data, data_torchaudio, trg_min_freq, trg_max_size, trg_vocab_f
                       unk_token=UNK_TOKEN,
                       batch_first=True, lower=lowercase,
                       include_lengths=True)
-    trg_vocab = build_vocab(min_freq=trg_min_freq, max_size=trg_max_size, dataset=data_torchaudio, vocab_file=trg_vocab_file)
+    if trg_vocab is None:
+        trg_vocab = build_vocab(min_freq=trg_min_freq, max_size=trg_max_size, dataset=data_torchaudio, trg_field=trg_field, vocab_file=trg_vocab_file)
     trg_field.vocab = trg_vocab
 
     entry_list = []
@@ -115,12 +96,17 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Optional[Dataset],
     train_path = data_cfg["train"]
     dev_path = data_cfg["dev"]
     test_path = data_cfg.get("test", None)
+    level = data_cfg["level"]
     lowercase = data_cfg["lowercase"]
+
+    tok_fun = lambda s: list(s) if level == "char" else s.split()
 
     trg_max_size = data_cfg.get("trg_voc_limit", sys.maxsize)
     trg_min_freq = data_cfg.get("trg_voc_min_freq", 1)
     trg_vocab_file = data_cfg.get("trg_vocab", None)
-    language = data_cfg.get("language", "esperanto")
+    language = data_cfg.get("language", "interlingua")
+
+    print("Loading and processing", language, "language data, this may take a while")
 
     train_data_torchaudio = COMMONVOICE('CommonVoice', language=language, download=True, tsv=train_path)
     # changed the dataset from a Translation Dataset to torchaudio dataset.
@@ -128,9 +114,11 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Optional[Dataset],
     # made preprocessing function
     # Done: make vocabulary manually, using Vocabulary class (only for target)
     train_data = DataLoader(train_data_torchaudio, batch_size=1, shuffle=False, collate_fn= lambda x: preprocess_data(x, type="train"))
+    train_data, trg_vocab, src_field, trg_field = reformat_data(train_data, train_data_torchaudio, trg_min_freq, trg_max_size, trg_vocab_file=trg_vocab_file, tok_fun=tok_fun, lowercase=lowercase)
 
     dev_data_torchaudio = COMMONVOICE('CommonVoice', language=language, tsv=dev_path)
     dev_data = DataLoader(dev_data_torchaudio, batch_size=1, shuffle=False, collate_fn= lambda x: preprocess_data(x, type="dev"))
+    dev_data, dev_trg_vocab, dev_src_field, dev_trg_field = reformat_data(dev_data, dev_data_torchaudio, trg_min_freq, trg_max_size, trg_vocab=trg_vocab, tok_fun=tok_fun, lowercase=lowercase)
 
     test_data = None
     if test_path is not None:
@@ -139,11 +127,7 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Optional[Dataset],
         test_data = DataLoader(test_data_torchaudio, batch_size=1, shuffle=False, collate_fn=lambda x: preprocess_data(x, type="test"))
         test_data, test_trg_vocab, test_src_field, test_trg_field = reformat_data(test_data, test_data_torchaudio,
                                                                               trg_min_freq, trg_max_size,
-                                                                              trg_vocab_file, lowercase=lowercase)
-
-    # Same processing we did for test_data, has to be used for train_data and dev_data
-    train_data, trg_vocab, src_field, trg_field = reformat_data(train_data, train_data_torchaudio, trg_min_freq, trg_max_size, trg_vocab_file, lowercase=lowercase)
-    dev_data, dev_trg_vocab, dev_src_field, dev_trg_field = reformat_data(dev_data, dev_data_torchaudio, trg_min_freq, trg_max_size, trg_vocab_file, lowercase=lowercase)
+                                                                              trg_vocab=trg_vocab, tok_fun=tok_fun, lowercase=lowercase)
 
     return train_data, dev_data, test_data, trg_vocab
 
