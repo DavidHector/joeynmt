@@ -141,7 +141,7 @@ class Vocabulary:
         return sentences
 
 
-def build_vocab(max_size: int, min_freq: int, dataset,
+def build_vocab(max_size: int, min_freq: int, dataset, trg_field,
                 vocab_file: str = None) -> Vocabulary:
     """
     Builds vocabulary for a torchtext `field` from given`dataset` or
@@ -178,11 +178,10 @@ def build_vocab(max_size: int, min_freq: int, dataset,
             return vocab_tokens
 
         tokens = []
-        tokenizer = get_tokenizer("basic_english")
         for i in dataset:
             input_audio, input_samplerate, input_dict = i[0], i[1], i[2]
             sentence = input_dict['sentence']
-            tokens.extend(tokenizer(sentence))
+            tokens.extend(trg_field.preprocess(sentence))
 
         counter = Counter(tokens)
         if min_freq > -1:
