@@ -4,7 +4,7 @@
 As the name says Joey NMT was originally meant for translation purposes. Our goal was to alleviate experimenting with speech2text, which is why we modified the original Codebase to accept and process audio data as source and text data as target transcriptions. 
 
 
-Check out the detailed [documentation](https://joeynmt.readthedocs.io) of the original project and their [paper](https://arxiv.org/abs/1907.12484). Out paper can be found at: [To be released]
+Check out the detailed [documentation](https://joeynmt.readthedocs.io) of the original project and their [paper](https://arxiv.org/abs/1907.12484). Out paper can be found in [this repository](https://github.com/DavidHector/joeynmt/).
 
 ## Contributors
 Joey-S2T is developed by [Niklas Korz](https://github.com/niklaskorz) (Heidelberg University), [Yoalli Rezepka García](https://github.com/Yrgarcia) (Heidelberg University) and [David Hector](https://github.com/DavidHector) (Heidelberg University).
@@ -58,11 +58,7 @@ Models are saved whenever a new best validation score is reached, in `batch_no.c
 For training on a GPU, set `use_cuda` in the config file to `True`. This requires the installation of required CUDA libraries.
 
 
-### Translating
-
-There are three options for testing what the model has learned.
-
-Whatever data you feed the model for translating, make sure it is properly pre-processed, just as you pre-processed the training data, e.g. tokenized and split into subwords (if working with BPEs).
+### Translating From Audio to Text
 
 #### File Speech2Text
 In order to transcribe the contents of an audio file, simply run
