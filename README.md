@@ -63,7 +63,7 @@ For training on a GPU, set `use_cuda` in the config file to `True`. This require
 #### File Speech2Text
 In order to transcribe the contents of an audio file, simply run
 
-`python3 -m joeynmt translate configs/stt.yaml < my_input.mp3 > out`.
+`python3 -m joeynmt translate configs/stt.yaml --input_path < my_input.mp3 > `.
 
 The transcriptions will be written to stdout or alternatively`--output_path` if specified.
 
