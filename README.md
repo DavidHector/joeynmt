@@ -1,7 +1,7 @@
 # &nbsp; ![Joey-S2T](joey-small.png) Joey NMT for Speech2Text
 
 ## Goal and Purpose
-As the name says Joey NMT was originally meant for translation purposes. Our goal was to alleviate experimenting with speech2text, which is why we modified the original Codebase to accept and process audio data as source and text data as target transcriptions. 
+Joey NMT was originally meant for translation purposes. Our goal was to alleviate experimenting with speech2text, which is why we modified the original Codebase to accept and process audio data as source and text data as target transcriptions. 
 
 
 Check out the detailed [documentation](https://joeynmt.readthedocs.io) of the original project and their [paper](https://arxiv.org/abs/1907.12484). Out paper can be found in [this repository](https://github.com/DavidHector/joeynmt/).
